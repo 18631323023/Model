@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>订单管理</title>
+    <script src="js/loadcss.js" type="text/javascript" charset="utf-8"></script>
+    <style>
+        .layui-form-radio {
+            margin: 0;
+        }
+
+        .layui-form-item .layui-input-inline {
+            width: 160px;
+        }
+
+        .layui-form-label {
+            width: 70px;
+        }
+    </style>
+</head>
+<body>
+<nav class="hotel-nav">
+
+    <ul class="layui-nav " lay-filter="" id="navMenu">
+
+
+    </ul>
+    <ul class="layui-nav layui-layout-right">
+        <li class="layui-nav-item">
+            <a href="javascript:;" id="hotelusername"></a>
+            <dl class="layui-nav-child">
+                <!--<dd>-->
+                    <!--<a href="javascript:;" id="updateHotel">更换酒店</a>-->
+                <!--</dd>-->
+                <dd>
+                    <a href="javascript:;" id="updatePass">修改密码</a>
+                </dd>
+                <dd>
+                    <a href="javascript:;" class="outLogin">退出登录</a>
+                </dd>
+            </dl>
+        </li>
+    </ul>
+</nav>
+<div style="height: 70px;"></div>
+<fieldset class="layui-elem-field" style="padding: 10px 0; margin: 0 30px 0 10px;">
+    <div class="layui-field-box">
+        <form class="layui-form head">
+            <div class="layui-form-item">
+                <!--下拉多选-->
+                <!--<select name="city" xm-select="select1">-->
+                <!--<option value="1" disabled="disabled">北京</option>-->
+                <!--<option value="2" selected="selected">上海</option>-->
+                <!--<option value="3">广州</option>-->
+                <!--<option value="4" selected="selected">深圳</option>-->
+                <!--<option value="5">天津</option>-->
+                <!--</select>-->
+                <label class="layui-form-label">订单类型</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="orderState" lay-filter="orderState" class="orderType" value=""
+                           title="全部">
+                    <input type="radio" name="orderState" lay-filter="orderState" class="orderType" value="admissions"
+                           title="在住订单">
+                    <input type="radio" name="orderState" lay-filter="orderState" class="orderType" value="accomplish"
+                           title="历史订单">
+                    <input type="radio" name="orderState" lay-filter="orderState" class="orderType" value="reservation"
+                           title="预约订单">
+                    <input type="radio" name="orderState" lay-filter="orderState" class="orderType" value="notpay"
+                           title="入住待支付订单">
+                    <input type="radio" name="orderState" lay-filter="orderState" class="orderType" value="notpaid"
+                           title="退房未结账订单">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">离店时间</label>
+                <div class="layui-input-block">
+                    <div class="layui-inline">
+                        <div class="layui-input-inline">
+                            <input type="text" name="departureStartTime" class="layui-input" id="leaveStartTime"
+                                   placeholder="开始时间">
+                        </div>
+                    </div>
+                    至
+                    <div class="layui-inline" style="margin-left: 20px;">
+                        <div class="layui-input-inline">
+                            <input type="text" name="departureEndTime" class="layui-input" id="leaveEndTime"
+                                   placeholder="结束时间">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">入住时间</label>
+                <div class="layui-input-block">
+                    <div class="layui-inline">
+                        <div class="layui-input-inline">
+                            <input type="text" name="admissionsStartTime" class="layui-input" id="enterStartTime"
+                                   placeholder="开始时间">
+                        </div>
+                    </div>
+                    至
+                    <div class="layui-inline" style="margin-left: 20px;">
+                        <div class="layui-input-inline">
+                            <input type="text" name="admissionsEndTime" class="layui-input" id="enterEndTime"
+                                   placeholder="结束时间">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">入住方式</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="checkType" value="" title="全部" checked>
+                    <input type="radio" name="checkType" value="day" title="全天房">
+                    <input type="radio" name="checkType" value="hour" title="钟点房">
+                    <input type="radio" name="checkType" value="free" title="免费房">
+                </div>
+            </div>
+            <div class="layui-form-item">
+            <label class="layui-form-label">姓名</label>
+            <div class="layui-input-inline">
+                <input type="text" name="orderPlacer" id="orderPlacer" placeholder="请输入姓名" autocomplete="off"
+                       class="layui-input">
+            </div>
+            <label class="layui-form-label">手机号</label>
+            <div class="layui-input-inline">
+                <input type="text" name="phone" id="phone" placeholder="请输入手机号" autocomplete="off"
+                       class="layui-input">
+            </div>
+            <label class="layui-form-label">OTA</label>
+            <div class="layui-input-inline">
+                <input type="text" name="OTA" id="OTA" placeholder="请输入OTA" autocomplete="off"
+                       class="layui-input">
+            </div>
+            <label class="layui-form-label">房号</label>
+            <div class="layui-input-inline">
+                <input type="text" name="roomName" placeholder="请输入房号" autocomplete="off" class="layui-input">
+            </div>
+            <label class="layui-form-label">客源</label>
+            <div class="layui-input-inline">
+                <select id="channel" name="channel" lay-search>
+                    <option value=""></option>
+                    <option value="散客">散客</option>
+                    <option value="会员">会员</option>
+                </select>
+            </div>
+            <div class="layui-input-inline" style="width: 200px;">
+                <button class="layui-btn" lay-submit="" lay-filter="formData">查询</button>
+            </div>
+        </div>
+        </form>
+    </div>
+</fieldset>
+<div style="width: 95%; margin: 0 auto;">
+    <table id="orderManage" lay-filter="orderManage" class="layui-table"></table>
+</div>
+<script type="text/html" id="barDemo">
+    {{#  if(d.orderState == 'reservation' ){ }}
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-xs" lay-event="center">入住</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="cancel">取消</a>
+    {{#  } else if(d.orderState == 'notpay') { }}
+    <a class="layui-btn layui-btn-xs" lay-event="payment">支付</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="cancel">取消</a>
+    {{#  } else if(d.orderState == 'admissions' || d.orderState == 'notpaid') { }}
+    <a class="layui-btn layui-btn-xs" lay-event="accountManage">客账管理</a>
+    <a class="layui-btn layui-btn-xs" lay-event="querySubPrice">打印</a>
+    {{#  } else if(d.orderState == 'accomplish') { }}
+    <a class="layui-btn layui-btn-xs" lay-event="queryManage">查看详情</a>
+    <a class="layui-btn layui-btn-xs" lay-event="queryPrice">打印</a>
+    {{#  } else if(d.orderState == 'cancel') { }}
+    <span>已取消</span>
+    {{# } }}
+</script>
+<script src="js/loadjs.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    layui.use(['form', 'element', 'laydate', 'table', 'formSelects'], function () {
+        var $ = layui.$, laydate = layui.laydate, form = layui.form, table = layui.table, orderState = '', obj = {};
+        renderReport($)
+
+
+        var formSelects = layui.formSelects;
+
+
+        $(function () {
+            //判断用户是否激活当前页面
+            visibilityChange();
+
+            //获取查询的订单状态   如何订单状态为null 则这设置订单状态为预约订单
+            orderState = sessionStorage.getItem('orderState');
+            if (orderState === null) {
+                sessionStorage.setItem('orderState', 'reservation');
+                orderState = 'reservation';
+            }
+            //判断是全部还是其他
+            if (!orderState) {
+                $('.orderType:first').prop('checked', 'true');
+            } else {
+                $('.orderType[value=' + orderState + ']').prop('checked', 'true');
+            }
+
+
+            //获取渠道
+            selectData();
+            form.render();
+            setInterval(function () {
+                getReport($);
+            }, 60000)
+        });
+
+
+        form.on('radio(orderState)', function (data) {
+            //每次选中单选按钮的时候  更新查询的订单状态
+            sessionStorage.setItem('orderState', data.value);
+            orderState = data.value;
+        });
+
+        //机构数据绑定
+        function selectData() {
+            renderSelect("channel", 'value', 'value', api.allChannel, form);
+        }
+
+        //初始化表格数据
+        var tab = table.render({
+            elem: '#orderManage'
+            , url: api.queryOrder
+            , method: 'POST'
+            , request: {
+                pageName: 'pageNo'
+                , limitName: 'pageSize'
+            }
+            , where: {orderState: orderState}
+            , response: {
+                statusName: 'code' //规定数据状态的字段名称，默认：code
+                , statusCode: 200 //规定成功的状态码，默认：0
+                , msgName: 'msg' //规定状态信息的字段名称，默认：msg
+                , countName: 'count' //规定数据总数的字段名称，默认：count
+                , dataName: 'data' //规定数据列表的字段名称，默认：data
+            }
+            , parseData: function (res) { //res 即为原始返回的数据
+                return {
+                    "code": 200, //解析接口状态
+                    "msg": res.errMsg, //解析提示文本
+                    "count": res.data.count, //解析数据长度
+                    "data": res.data.data //解析数据列表
+                };
+            }
+            , limit: 10
+            , loading: true //是否显示加载条
+            , page: true //开启分页
+            , cols: [[ //表头
+                {
+                    field: 'checkTime', title: '入住', width: 160, align: 'center', templet: function (data) {
+                        return !!data.checkTime ? DateToLStr(new Date(data.checkTime.time)) : '';
+                    }
+                }
+                , {
+                    field: 'checkOutTime', title: '离店', width: 160, align: 'center', templet: function (data) {
+                        return !!data.checkOutTime ? DateToLStr(new Date(data.checkOutTime.time)) : '未离店';
+                    }
+                }
+                , {field: 'roomName', title: '房号', width: 90, align: 'center'}
+                , {field: 'roomType', title: '房型', width: 100, align: 'center'}
+                , {field: 'orderPlacer', title: '姓名', width: 100, align: 'center'}
+                , {field: 'phone', title: '电话', width: 120, align: 'center'}
+                , {
+                    field: 'orderType', title: '渠道', width: 120, align: 'center', templet: function (data) {
+                        switch (data.orderType) {
+                            case 'subscribe':
+                                return '预约订单';
+                            case 'directly':
+                                return '直接入住';
+                        }
+                    }
+                }
+                , {field: 'OTA', title: 'OTA', width: 90, align: 'center'}
+                , {field: 'channel', title: '客源', width: 90, align: 'center'}
+                , {
+                    field: 'checkType', title: '入住方式', width: 120, align: 'center', templet: function (data) {
+                        switch (data.checkType) {
+                            case '':
+                            case 'day':
+                                return '全天房';
+                            case 'hour':
+                                return '钟点房';
+                            case 'free':
+                                return '免费房';
+                        }
+                    }
+                }
+                , {field: 'unitPrice', title: '首日单价', width: 100, align: 'center'}
+                , {field: 'remark', title: '备注', width: 100, align: 'center'}
+                , {
+                    field: 'orderState', title: '订单状态', width: 120, align: 'center', templet: function (data) {
+                        return queryOrderState(data.orderState);
+                    }
+                }
+                , {fixed: 'right', width: 200, title: '操作', align: 'center', toolbar: '#barDemo'}
+            ]]
+        });
+        //监听提交
+        form.on('submit(formData)', function (data) {
+            tab.reload({
+                where: data.field
+                , page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+            });
+            return false;
+        });
+
+        function makeCard() {
+            layer.open({
+                area: ['520px', '320px'],
+                type: 2,
+                content: "iframe_makeCard.html",
+                title: "制卡",
+                end: function () {
+                    parent.location.href = HOME;
+                }
+            })
+        }
+
+        //表格操作按钮
+        table.on('tool(orderManage)', function (obj) { //tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            // var tr = obj.tr; //获得当前行 tr 的DOM对象
+            if (layEvent === 'edit') {//编辑
+                location.href = 'schedule_change.html?id=' + data.orderId + '&date=' + Date.now() + "&idNum=" + data.certificateNumber;
+            } else if (layEvent === 'queryManage') {//查看详情
+                window.open('orderInfo.html?id=' + encodeURI(data.alRoomCode) + '&date=' + Date.now() + '&state=1', '_blank')
+            } else if (layEvent === 'accountManage') { //客账管理
+                window.open('orderInfo.html?id=' + encodeURI(data.alRoomCode) + '&date=' + Date.now() + '&back=0&state=0', '_blank')
+            } else if (layEvent === 'center') { //入住
+                location.href = 'appoint.html?phone=' + data.phone + "&idNum=" + data.certificateNumber + "&random=" + Date.now();
+            } else if (layEvent === 'cancel') {//取消订单
+                layer.open({
+                    type: 2,
+                    skin: 'demo-class',
+                    area: ['500px', '400px'],
+                    title: '取消订单',
+                    shade: 0.6,
+                    shadeClose: true,
+                    content: 'iframe_orderCancel.html?id=' + data.orderId + '&date=' + Date.now(),
+                    end: function (index, layero) {
+                        tab.reload();
+                    }
+                });
+            } else if (layEvent === 'payment') {//支付
+                $.ajax({
+                    url: api.queryPayment,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        orderId: data.orderId
+                    },
+                    success: function (rs) {
+                        if (rs.success) {
+                            sessionStorage.setItem('payBO', JSON.stringify(rs.data.payBO));
+                            layer.open({
+                                type: 2,
+                                skin: 'demo-class',
+                                area: ['500px', '400px'],
+                                title: '支付',
+                                shade: 0.6,
+                                shadeClose: true,
+                                content: 'iframe_pay.html?r=' + Date.now() + '&orderId=' + data.orderId + '&totalPrice=' + rs.data.totalPrice,
+                                end: function () {
+                                    sessionStorage.removeItem('payBO');
+                                    tab.reload();
+                                }
+                            });
+                        }
+                    },
+                    error: function (err) {
+                        console.log('error');
+                        // console.log(err);
+                    }
+                });
+
+            } else if (layEvent === 'queryPrice' || layEvent === 'querySubPrice') {//实时打印
+                sessionStorage.setItem('oIds', data.id);
+                window.open('queryPrice.html?childId=' + data.id + '&date=' + Date.now(), "_blank", "toolbar=yes, location=yes, directories=no, status=no, menubar=yes, scrollbars=yes, resizable=no, copyhistory=yes, width=600, height=600");
+            }
+        });
+        //离店时间控件
+        var start = laydate.render({
+            elem: '#leaveStartTime'
+            , type: 'datetime'
+            , format: 'yyyy/MM/dd'
+            , btns: ['clear', 'confirm'],
+            done: function (value, date) {
+                endMax = end.config.max;
+                end.config.min = date;
+                end.config.min.month = date.month - 1;
+            },
+            change: function (value, date, endDate) {
+                var timestamp2 = Date.parse(new Date(value));
+                timestamp2 = timestamp2 / 1000;
+                end.config.min = timestamp2;
+                end.config.min.month = date.month - 1;
+            }
+        });
+
+        var end = laydate.render({
+            elem: '#leaveEndTime'
+            , type: 'datetime'
+            , format: 'yyyy/MM/dd'
+            , btns: ['clear', 'confirm']
+            , done: function (value, date) {
+                if (!$.trim(value)) {
+                    var curDate = new Date();
+                    date = {'date': curDate.getDate(), 'month': curDate.getMonth() + 1, 'year': curDate.getFullYear()};
+                }
+                start.config.max = date;
+                start.config.max.month = date.month - 1;
+            }
+        });
+        //入住时间控件
+        var enterStart = laydate.render({
+            elem: '#enterStartTime'
+            , type: 'datetime'
+            , format: 'yyyy/MM/dd'
+            , btns: ['clear', 'confirm']
+            , done: function (value, date) {
+                enterEnd.config.min = date;
+                enterEnd.config.min.month = date.month - 1;
+            },
+            change: function (value, date, endDate) {
+                var timestamp2 = Date.parse(new Date(value));
+                timestamp2 = timestamp2 / 1000;
+                enterEnd.config.min = timestamp2;
+                enterEnd.config.min.month = date.month - 1;
+            }
+        });
+        var enterEnd = laydate.render({
+            elem: '#enterEndTime'
+            , type: 'datetime'
+            , format: 'yyyy/MM/dd'
+            , btns: ['clear', 'confirm']
+            , done: function (value, date) {
+                if (!$.trim(value)) {
+                    var curDate = new Date();
+                    date = {'date': curDate.getDate(), 'month': curDate.getMonth() + 1, 'year': curDate.getFullYear()};
+                }
+                enterStart.config.max = date;
+                enterStart.config.max.month = date.month - 1;
+            }
+        });
+
+    });
+
+</script>
+</body>
+</html>

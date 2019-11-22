@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>upLoad</title>
+    <style>
+        .page {
+            position: relative;
+            margin: 20px auto 0;
+            text-align: center;
+        }
+
+        .page .page_btn {
+            outline: none;
+            width: 80%;
+            border: 1px #10A8E5 solid;
+            padding: 20px 30px;
+            background: linear-gradient(225deg, rgba(0, 134, 255, 1) 0%, rgba(83, 219, 255, 1) 100%);
+            box-shadow: 0 6px 20px 0 rgba(16, 168, 229, 0.2);
+            border-radius: 100px;
+            color: #ffffff;
+            font-size: 24px;
+        }
+
+        .imageShow {
+            width: 80%;
+            margin: 0 auto;
+            border: 1px #10A8E5 solid;
+        }
+
+        .tips {
+            font-size: 24px;
+        }
+
+        .list {
+            width: 400px;
+            margin: 0 auto;
+        }
+        .list2 {
+            width: 400px;
+            margin: 30px auto;
+        }
+        th{
+            width: 100px;
+        }
+        tr{
+            height: 35px;
+        }
+        .text{
+            color: red;
+        }
+
+    </style>
+</head>
+<body>
+<div class="page">
+    <button class="page_btn" id="upLoadBtn">上传图片</button>
+    <input type="file" id="upLoad" style="display:none;" name="upLoad" accept="image/*">
+    <div class="list"></div>
+
+    <div class="list2">
+        <table>
+            <tr>
+                <th>评估项</th>
+                <th>异常程度</th>
+                <th>分值</th>
+            </tr>
+            <tr>
+                <th>头部侧倾</th>
+                <th id="headHeel_R"></th>
+                <th id="headHeel_RNum"></th>
+            </tr>
+            <tr>
+                <th>高低肩</th>
+                <th id="highLowShoulder"></th>
+                <th id="highLowShoulderNum"></th>
+            </tr>
+            <tr>
+                <th>脊柱侧弯</th>
+                <th id="scoliosisR"></th>
+                <th id="scoliosisRNum"></th>
+            </tr>
+            <tr>
+                <th>盆骨侧倾</th>
+                <th id="pelvicTiltR"></th>
+                <th id="pelvicTiltRNum"></th>
+            </tr>
+            <tr>
+                <th>O型腿左腿</th>
+                <th id="o_leftleg_r"></th>
+                <th id="o_leftleg_rNum"></th>
+            </tr>
+            <tr>
+                <th>O型腿右腿</th>
+                <th id="o_rightleg_r"></th>
+                <th id="o_rightleg_rNum"></th>
+            </tr>
+            <tr>
+                <th>X型腿左腿</th>
+                <th id="x_leftleg_r"></th>
+                <th id="x_leftleg_rNum"></th>
+            </tr>
+            <tr>
+                <th>X型腿右腿</th>
+                <th id="x_rightleg_r"></th>
+                <th id="x_rightleg_rNum"></th>
+            </tr>
+        </table>
+    </div>
+    <div class="text">注意：异常程度分值量化标准：(60]为正常,(60,80]为轻度异常,(80,100]为重度异常</div>
+</div>
+<script src="js/jquery-3.3.1.min.js"></script>
+<script>
+
+    function m1(emlId,num) {
+        var headHeel_RText='';
+        if(num<=60){
+            headHeel_RText='正常';
+        }else if(num>60 && num<=80){
+            headHeel_RText='轻度异常';
+        }else {
+            headHeel_RText='重度异常';
+        }
+        $(emlId).text(headHeel_RText);
+        $(emlId+'Num').text(num);
+    }
+    
+    var title=['原图','解析图','头部','胸部','骨盆','腿部'];
+    $('#upLoadBtn').on('click', function () {
+        $('#upLoad').click();
+    })
+
+    //上传
+    $("#upLoad").on("change", function () {
+
+        var file = $(this).get(0).files[0]; //获取图片
+        var formData = new FormData();
+
+            formData.append("file", file);
+            $.ajax({
+                url: '/body/body',//上传路径
+                type: 'POST',
+                data: formData,
+                dataType: "json",
+                processData: false,  // processData和contentType需设置为false
+                contentType: false,
+                success: function (res) {
+                    var datas=[];
+                    datas.push(res.data.old);
+                    datas.push(res.data.analysis);
+                    datas.push(res.data.head_image);
+                    datas.push(res.data.chest_image);
+                    datas.push(res.data.pelvis_image);
+                    datas.push(res.data.leg_image);
+                    //res后台返回地址
+                  for (var i = 0 ; i < datas.length; i++) {
+
+                        $('.list').append('<div class="tips">' + title[i] + '</div><img class="imageShow" src="' + datas[i] + '" width="100%"/>')
+
+                    }
+
+
+                    //身体评估
+                    //头部侧倾
+                    m1('#headHeel_R',res.data.headHeel_R);
+                    //高低肩
+                    m1('#highLowShoulder',res.data.highLowShoulder);
+                    //脊柱侧弯
+                    m1('#scoliosisR',res.data.scoliosisR);
+                    //盆骨侧倾
+                    m1('#pelvicTiltR',res.data.pelvicTiltR);
+                    //O行左腿
+                    m1('#o_leftleg_r',res.data.o_leftleg_r);
+                    //O行右腿
+                    m1('#o_rightleg_r',res.data.o_rightleg_r);
+                    //X行左腿
+                    m1('#x_leftleg_r',res.data.x_leftleg_r);
+                    //X行右腿
+                    m1('#x_rightleg_r',res.data.x_rightleg_r);
+
+                }
+          })
+
+    });
+</script>
+</body>
+</html>

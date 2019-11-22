@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>upLoad</title>
+    <style>
+        .page {
+            position: relative;
+            margin: 20px auto 0;
+            text-align: center;
+        }
+
+        .page .page_btn {
+            outline: none;
+            width: 80%;
+            border: 1px #10A8E5 solid;
+            padding: 20px 30px;
+            background: linear-gradient(225deg, rgba(0, 134, 255, 1) 0%, rgba(83, 219, 255, 1) 100%);
+            box-shadow: 0 6px 20px 0 rgba(16, 168, 229, 0.2);
+            border-radius: 100px;
+            color: #ffffff;
+            font-size: 24px;
+        }
+
+        .imageShow {
+            width: 80%;
+            margin: 0 auto;
+            border: 1px #10A8E5 solid;
+        }
+
+        .tips {
+            font-size: 24px;
+        }
+
+        .list {
+            width: 400px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <button class="page_btn" id="upLoadBtn">上传侧身图片</button>
+    <input type="file" id="upLoad" style="display:none;" name="upLoad" accept="image/*">
+    <div class="list"></div>
+</div>
+<script src="js/jquery-3.3.1.min.js"></script>
+<script>
+
+    var title=['原图','解析图','头部','腿部'];
+    $('#upLoadBtn').on('click', function () {
+        $('#upLoad').click();
+    })
+
+    //上传
+    $("#upLoad").on("change", function () {
+
+        var file = $(this).get(0).files[0]; //获取图片
+        var formData = new FormData();
+
+            formData.append("file", file);
+            $.ajax({
+                url: '/body/bodySideways',//上传路径
+                type: 'POST',
+                data: formData,
+                dataType: "json",
+                processData: false,  // processData和contentType需设置为false
+                contentType: false,
+                success: function (res) {
+                    var datas=[];
+                    datas.push(res.data.old);
+                    datas.push(res.data.analysis);
+                    datas.push(res.data.head_image);
+                    datas.push(res.data.leg_image);
+                    console.log(datas)
+                    //res后台返回地址
+                  for (var i = 0 ; i < datas.length; i++) {
+
+                        $('.list').append('<div class="tips">' + title[i] + '</div><img class="imageShow" src="' + datas[i] + '" width="100%"/>')
+
+                    }
+
+                }
+          })
+
+    });
+</script>
+</body>
+</html>

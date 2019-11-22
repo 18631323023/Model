@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>订单详情</title>
+    <script src="js/loadcss.js" type="text/javascript" charset="utf-8"></script>
+    <style>
+        .layui-table, .layui-table-view {
+            margin: 10px 0 0;
+        }
+
+        body {
+            overflow-y: scroll;
+        }
+
+        /* 禁止刷新后出现横向滚动条 */
+    </style>
+</head>
+<body>
+<nav class="hotel-nav">
+
+    <ul class="layui-nav " lay-filter="" id="navMenu">
+
+
+    </ul>
+    <ul class="layui-nav layui-layout-right">
+        <li class="layui-nav-item">
+            <a href="javascript:;" id="hotelusername"></a>
+            <dl class="layui-nav-child">
+                <!--<dd>-->
+                    <!--<a href="javascript:;" id="updateHotel">更换酒店</a>-->
+                <!--</dd>-->
+                <dd>
+                    <a href="javascript:;" id="updatePass">修改密码</a>
+                </dd>
+                <dd>
+                    <a href="javascript:;" class="outLogin">退出登录</a>
+                </dd>
+            </dl>
+        </li>
+    </ul>
+</nav>
+<div style="height: 70px;"></div>
+<div class="order-info-main">
+    <div class="o-left">
+        <div>
+            <table id="orderList" lay-filter="orderList" class="layui-table"></table>
+        </div>
+        <div style="height: 38px;"></div>
+        <div class="l-btn" id="checkOutBox">
+            <button class="layui-btn" style="width: 200px;" id="checkOut">结账</button>
+        </div>
+    </div>
+    <div class="o-reight">
+        <div class="layui-btn-container btn-box">
+            <button class="r-btn layui-btn" id="deposit">押金</button>
+            <button class="r-btn layui-btn" id="other">入账</button>
+            <button class="r-btn layui-btn" id="blanking">冲减</button>
+            <button class="r-btn layui-btn" id="outHouse">退房</button>
+            <button class="r-btn layui-btn" id="rollback">退房回滚</button>
+        </div>
+        <div class="r-total">
+            <div class="t-left">
+                <div>合计:</div>
+                <div>
+                    <span id="total"></span>元
+                </div>
+            </div>
+            <div class="t-reight">
+                <div>
+                    收款合计：现金<span id="payCashNum"></span>元 非现金<span id="otherPayNum"></span>元 合计<span
+                        id="collection"></span>元
+                </div>
+                <div>
+                    消费合计：房费 <span id="roomRate"></span>元 其它费用 <span id="otherRate"></span>元 冲减金额 <span
+                        id="freeRateNum"></span>元 合计 <span
+                        id="consumption"></span>元
+                </div>
+                <div class="room-state" style="display: none">
+                    房态：<span id="roomState"></span>
+                </div>
+                <div class="order-state" style="display: none">
+                    订单状态：<span id="orderState"></span>
+                </div>
+            </div>
+        </div>
+        <div class="remark-box">
+            <div>备注: <span id="remarks"></span></div>
+        </div>
+        <div>
+            <table id="orderInfo" lay-filter="orderInfo" class="layui-table"></table>
+        </div>
+        <div style="float: right;overflow: hidden;margin-top: 10px;margin-right: 30px;">
+            <button class="r-btn layui-btn" id="gopay">消费项目结账</button>
+            <button class="r-btn layui-btn" id="transfer">消费项目转账</button>
+        </div>
+
+    </div>
+</div>
+<script src="js/loadjs.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    layui.use(['form', 'element', 'laydate', 'table'], function () {
+        var $ = layui.$, form = layui.form, table = layui.table, resReight = [], orderList = null,
+            orderInfo = null, oId = 0, oIds = [], id = 0, remark = '';
+        var state = {};
+
+        //oId 子订单ID
+
+        renderReport($)
+        $(function () {
+            //id为初始化使用
+            id = decodeURI(getUrl('id'));
+            var state = parseInt(getUrl('state'));
+            setInterval(function () {
+                getReport($)
+            }, 60000)
+
+            if (state == 2 || state == 0) {
+                $('.room-state').css('display', 'block');
+                $('.order-state').css('display', 'block');
+            } else if (state == 1) {
+                $('.r-btn').css('display', 'none');
+                $('#checkOutBox').css('display', 'none');
+            }
+            queryOrderInfo();
+        });
+
+        orderList = table.render({
+            elem: '#orderList'
+            , limit: 10000
+            , method: 'POST'
+            , cols: [[ //表头
+                {field: 'roomName', title: '房号', align: 'center', width: 100}
+                , {field: 'name', title: '姓名', align: 'center', width: 120}
+                , {field: 'createTime', title: '入住时间', align: 'center'}
+            ]]
+        });
+
+
+        orderInfo = table.render({
+            elem: '#orderInfo'
+            , data: resReight
+            , method: 'POST'
+            , limit: 10000
+            , even: true
+            , done: function (res, curr, count) {
+                var data = res.data;
+                //如果第一次进入时无数据，跳出方法
+                if (data.length == 0) return;
+                if (!data[0]['state']) return;
+                // 禁止全选方法
+                var allck = true;
+                for (var j = 0, len = data.length; j < len; j++) {
+                    if (data[j].state === 'yes') { //查找每条数据中是否存在state=yes
+                        allck = false;
+                        break;
+                    }
+                }
+                //如果为false将禁用layui-table-header中的全选按钮
+                if (!allck) {
+                    $(".o-reight .layui-table-header").find("input[name='layTableCheckbox'][lay-filter='layTableAllChoose']").each(
+                        function () {
+                            // console.log($(this).attr("disabled", 'disabled').next())
+                            $(this).attr("disabled", 'disabled').next().removeClass("layui-form-checked layui-unselect");
+                            form.render('checkbox');
+                        });
+                }
+
+                var i = 0;
+                $(".o-reight .layui-table-body.layui-table-main").find("input[name='layTableCheckbox']").each(function () {
+                    if (data.length == i) return false;
+                    if (data[i].state == 'yes') { //关键点如果当前行数据中state为yes那么就不可选
+                        $(this).attr("disabled", 'disabled').removeAttr("checked");
+                        form.render('checkbox');
+                    }
+                    i++;
+                });
+
+            }
+            , cols: [[ //表头
+                {
+                    type: 'checkbox'
+                },
+                {
+                    field: 'createTime', title: '消费时间', width: 198, align: 'center', templet: function (data) {
+                        return DateToLStr(new Date(data.createTime.time));
+                    }
+                }
+                , {field: 'project', title: '项目', align: 'center'}
+                , {
+                    field: 'payType', title: '类型', align: 'center', templet: function (data) {
+                        return orderPayType(data.payType);
+                    }
+                }
+                , {field: 'info', title: '详情', width: 200, align: 'center'}
+                , {field: 'number', title: '数量', align: 'center'}
+                , {field: 'money', title: '金额', align: 'center'}
+                , {field: 'createUserName', title: '操作员', align: 'center'}
+                , {
+                    field: 'state', title: '状态', align: 'center', templet: function (data) {
+                        return data.state === 'yes' ? '已结' : '未结';
+                    }
+                }
+            ]]
+        });
+
+        //客账管理
+        function queryOrderInfo() {
+            $.ajax({
+                url: api.queryOrderById,
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    alCode: id
+                },
+                success: function (left) {
+                    oId = left.data[0].id;
+                    orderList.reload({data: JSON.parse(JSON.stringify(left.data))});
+                    remark = left.data[0].remark;  //子订单备注
+                    //保存所有子订单ID
+                    for (var i = 0, len = left.data.length; i < len; i++) {
+                        oIds.push(left.data[i].id);
+                    }
+                    sessionStorage.setItem('oIds', oIds);
+                    //第一行高亮
+                    $('.o-left .layui-table-body tr[data-index="0"]').css('backgroundColor', '#33ABA0');
+                    //查询第一行的子订单消费信息
+                    getRightData(oId);
+                }
+            })
+        }
+
+        //查询子订单消费项 与 消费 收款
+        function getRightData(id) {
+            $.ajax({
+                url: api.queryOrderInfo,
+                type: 'POST',
+                dataType: 'json',
+                data: {orderChildId: id},
+                success: function (res) {
+                    // console.log(res);
+                    var data = res.data;
+                    //计算合计及显示收款、消费项   和显示房态、订单状态
+                    priceInfo({
+                        payCashNum: data.payCashNum,  //现金金额
+                        otherPayNum: data.otherPayNum,  //非现金金额
+                        roomRate: data.roomRate,  //房费
+                        otherRate: data.otherRate,  //其他费用
+                        freeRateNum: data.freeRateNum //免单金额
+                    }, roomMajorState(data.roomMajorState), queryOrderState(data.orderState));
+                    orderInfo.reload({data: data.orderRecoredBOS});
+                }
+            })
+        }
+
+        //监听行单击事件
+        table.on('row(orderList)', function (obj) {
+            var tr = obj.tr, data = obj.data;
+            //高亮显示
+            $('.o-left .layui-table-body tr').css('backgroundColor', '#ffffff');
+            $(tr).css('backgroundColor', '#33ABA0');
+            //获取点击的行的子订单ID
+            oId = data.id;
+            //子订单备注
+            remark = data.remark;
+            //更新右面表格的数据
+            getRightData(oId);
+        });
+
+        //点击押金
+        $('#deposit').on('click', function () {
+            if (!oId) {
+                layer.msg('系统错误,请刷新页面！');
+                return;
+            }
+            layer.open({
+                type: 2,
+                skin: 'demo-class',
+                area: ['500px', '400px'],
+                title: '押金',
+                shade: 0.6,
+                shadeClose: true,
+                content: 'iframe_orderDeposit.html?id=' + oId+ '&date=' + Date.now(),
+                end: function (index, layero) {
+                    getRightData(oId);
+                }
+            });
+        });
+        //点击入账
+        $('#other').on('click', function () {
+            if (!oId) {
+                layer.msg('系统错误,请刷新页面！');
+                return;
+            }
+            layer.open({
+                type: 2,
+                skin: 'demo-class',
+                area: ['500px', '300px'],
+                title: '其他费用',
+                shade: 0.6,
+                shadeClose: true,
+                content: 'iframe_orderOther.html?id=' + oId+ '&date=' + Date.now(),
+                end: function (index, layero) {
+                    getRightData(oId);
+                }
+            });
+        });
+        //点击冲减
+        $('#blanking').on('click', function () {
+            if (!oId) {
+                layer.msg('系统错误,请刷新页面！');
+                return;
+            }
+            layer.open({
+                type: 2,
+                skin: 'demo-class',
+                area: ['500px', '350px'],
+                title: '免单',
+                shade: 0.6,
+                shadeClose: true,
+                content: 'iframe_orderFree.html?id=' + oId+ '&date=' + Date.now(),
+                end: function () {
+                    getRightData(oId);
+                }
+            });
+        });
+
+        //退房
+        $('#outHouse').on('click', function () {
+            if (!oId) {
+                layer.msg('请选择需要支付的订单！');
+                return;
+            }
+            parent.layer.load(1, {time: 10 * 1000});
+            //退房
+            outHouse();
+        });
+
+        //退房
+        function outHouse() {
+            $.ajax({
+                url: api.outRoom,
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    orderChildId: oId
+                },
+                success: function (data) {
+                    parent.layer.closeAll('loading');
+                    if (!data.success) {
+                        layer.alert(data.errMsg, function () {
+                            parent.layer.closeAll('dialog');
+                        });
+                        return;
+                    }
+                    sessionStorage.setItem('outData', JSON.stringify(data.data));
+                    layer.open({
+                        type: 2,
+                        skin: 'demo-class',
+                        area: ['500px', '500px'],
+                        title: '退房',
+                        shade: 0.6,
+                        shadeClose: true,
+                        content: 'iframe_orderCheckOut.html?id=' + oId + '&date=' + Date.now(),
+                        end: function () {
+                            sessionStorage.removeItem('outData')
+                            getRightData(oId);
+                        }
+                    });
+                }
+            });
+        }
+
+        //退房回滚
+        $('#rollback').on('click', function () {
+            parent.layer.confirm('是否确定进行退房回滚？', {icon: 3, title: '提示'}, function (index) {
+                $.ajax({
+                    url: api.outRoomRefound,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        orderChildId: oId
+                    },
+                    success: function (data) {
+                        if (!data.success) {
+                            layer.alert(data.errMsg, function () {
+                                layer.closeAll('dialog');
+                            });
+                            return;
+                        }
+                        if (data.success) {
+                            getRightData(oId);
+                            showMsg('退房回滚成功', 1, false);
+                        }
+                    }
+                })
+
+            });
+        });
+
+        //点击结账
+        $('#checkOut').on('click', function () {
+            if (!oIds.length) {
+                layer.msg('请选择需要支付的订单！');
+                return;
+            }
+            sessionStorage.setItem('ids', JSON.stringify(oIds));
+            $.ajax({
+                url: api.refund,
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    ids: oIds.join(',')
+                },
+                success: function (data) {
+                    if (!data.success) {
+                        layer.alert(data.errMsg, function () {
+                            layer.closeAll('dialog');
+                        });
+                        return;
+                    }
+                    sessionStorage.setItem('payData', JSON.stringify(data.data));
+                    layer.open({
+                        type: 2,
+                        skin: 'demo-class',
+                        area: ['500px', '650px'],
+                        title: '结账',
+                        shade: 0.6,
+                        shadeClose: true,
+                        content: 'iframe_orderSettleAccounts.html?s=1&back=' + getUrl('back')+ '&date=' + Date.now(),
+                        end: function () {
+                            sessionStorage.removeItem('payData');
+                        }
+                    });
+                }
+            });
+        });
+
+
+        // //监听表格复选框选择
+        // table.on('checkbox(orderList)', function (obj) {
+        //     //获取表格内复选框已选中的数据data
+        //     var checkStatus = table.checkStatus('orderList'), data = checkStatus.data;
+        //     oIds = [];
+        //     for (var i = 0, len = data.length; i < len; i++) {
+        //         oIds.push(data[i].id);
+        //     }
+        //     sessionStorage.setItem('oIds', oIds);
+        // });
+
+        //子订单消费项复选框选中事件
+        layui.table.on('checkbox(orderInfo)', function (obj) {
+            // console.log(table.checkStatus('orderInfo').data)
+            state.selRow = table.checkStatus('orderInfo').data;
+        });
+
+        //更新合计数据  和房态  订单状态
+        function priceInfo(data, roomState, orderState) {
+            if (!!roomState) {
+                $('#roomState').html(roomState);
+            }
+            if (!!orderState) {
+                $('#orderState').html(orderState);
+            }
+
+            for (var item in data) {
+                $('#' + item).text(data[item] ? data[item] : 0);
+            }
+            //格式化选中消费项
+            state = {};
+            //计算合计
+            var collection = data.payCashNum + data.otherPayNum;
+            var consumption = data.roomRate + data.otherRate + data.freeRateNum;
+            var total = collection - consumption;
+
+            //收款项
+            $('#collection').text(collection);
+            //消费项
+            $('#consumption').text(consumption);
+            //合计项
+            if (total > 0) {
+                $('#total').text('应退' + total.toFixed(2));
+            } else {
+                $('#total').text('应收' + Math.abs(total).toFixed(2));
+            }
+        }
+
+        //消费项目转账
+        $('#transfer').on('click', function () {
+            state.selRow = table.checkStatus('orderInfo').data;
+            if (!state.selRow) {
+                layer.alert("没有选择");
+                return false;
+            }
+            if (state.selRow.length == 0) {
+                layer.alert("没有选择");
+                return false;
+            }
+            var rids = [];
+            for (var i = 0; i < state.selRow.length; i++) {
+                rids.push(state.selRow[i].id)
+            }
+
+            var uu = 'iframe_orderTally.html?v=' + Date.now() + '&ids=' + rids.join(",") + "&id=" + oId;
+            parent.layer.open({
+                type: 2,
+                skin: 'demo-class',
+                area: ['500px', '200px'],
+                title: '消费项目转账',
+                shade: 0.6,
+                shadeClose: true,
+                content: uu,
+                end: function () {
+                    getRightData(oId);
+                    var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                    parent.layer.close(index); //再执行关闭
+                }
+            });
+        });
+
+        //消费项目结账
+        $('#gopay').on('click', function () {
+            if (!state.selRow) {
+                layer.alert("没有选择");
+                return false;
+            }
+            if (state.selRow.length == 0) {
+                layer.alert("没有选择");
+                return false;
+            }
+            var rids = [];
+            for (var i = 0; i < state.selRow.length; i++) {
+                rids.push(state.selRow[i].id)
+            }
+            sessionStorage.setItem('ids', JSON.stringify(rids));
+            $.ajax({
+                url: api.subitemOnclick,
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    ids: rids.join(',')
+                },
+                success: function (data) {
+                    if (data.success) {
+                        sessionStorage.setItem('payData', JSON.stringify(data.data));
+                        layer.open({
+                            type: 2,
+                            skin: 'demo-class',
+                            area: ['550px', '550px'],
+                            title: '消费项目结账',
+                            shade: 0.6,
+                            shadeClose: true,
+                            content: 'iframe_orderSettleAccounts.html?id=' + oId+ '&date=' + Date.now(),
+                            end: function () {
+                                getRightData(oId);
+                                sessionStorage.removeItem('ids');
+                            }
+                        });
+                    } else {
+                        layer.alert(data.errMsg, function () {
+                            layer.closeAll();
+                        });
+                    }
+                }
+            })
+        });
+
+    });
+</script>
+</body>
+</html>

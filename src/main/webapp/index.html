@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>upLoad</title>
+    <style>
+
+        *{
+            margin: 0;
+            padding: 0;
+        }
+
+        .page {
+            position: relative;
+            margin: 20px auto 0;
+            text-align: center;
+        }
+
+        .page .page_btn {
+            outline: none;
+            width: 80%;
+            border: 1px #10A8E5 solid;
+            padding: 20px 30px;
+            background: linear-gradient(225deg, rgba(0, 134, 255, 1) 0%, rgba(83, 219, 255, 1) 100%);
+            box-shadow: 0 6px 20px 0 rgba(16, 168, 229, 0.2);
+            border-radius: 100px;
+            color: #ffffff;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+
+        .imageShow {
+            width: 80%;
+            margin: 0 auto;
+            border: 1px #10A8E5 solid;
+        }
+
+        .tips {
+            font-size: 24px;
+        }
+
+        .list {
+            top: 20px;
+            width: 80%;
+            margin: 0 auto;
+        }
+
+        .list2 {
+            width: 400px;
+            margin: 30px auto;
+        }
+
+        th {
+            width: 100px;
+        }
+
+        tr {
+            height: 35px;
+        }
+
+        .text {
+            color: red;
+        }
+        .imglist{
+            vertical-align: top;
+        }
+        .imglistside{
+            vertical-align: top;
+        }
+
+        .layer {
+            display: none;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin: auto;
+            z-index: 20;
+            background: rgba(0, 0, 0, .6);
+        }
+
+
+        .layer > div{
+            margin: 0 auto;
+            width: 40%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <div class="layer"><div><img id="showImage" alt=""></div></div>
+        <button class="page_btn" id="upLoadBtn">上传正面图片</button>
+
+        <button class="page_btn" id="upLoadsideBtn">上传侧面图片</button>
+
+        <input type="file" id="upLoad" multiple="multiple" style="display:none;" name="upLoad" accept="image/*">
+        <input type="file" id="upLoadside" multiple="multiple" style="display:none;" name="upLoad" accept="image/*">
+        <div class="text">注：上传的图片不得大于2M且为jpg格式</div>
+        <div class="list">
+            <table>
+                <tr>
+                    <td class="imglist"></td>
+                    <td class="imglistside"></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="list2">
+            <table>
+                <tr>
+                    <th>评估项</th>
+                    <th>异常程度</th>
+                    <th>分值</th>
+                </tr>
+                <tr>
+                    <th>头部侧倾</th>
+                    <th id="headHeel_R"></th>
+                    <th id="headHeel_RNum"></th>
+                </tr>
+                <tr>
+                    <th>高低肩</th>
+                    <th id="highLowShoulder"></th>
+                    <th id="highLowShoulderNum"></th>
+                </tr>
+                <tr>
+                    <th>脊柱侧弯</th>
+                    <th id="scoliosisR"></th>
+                    <th id="scoliosisRNum"></th>
+                </tr>
+                <tr>
+                    <th>盆骨侧倾</th>
+                    <th id="pelvicTiltR"></th>
+                    <th id="pelvicTiltRNum"></th>
+                </tr>
+                <tr>
+                    <th>O型腿左腿</th>
+                    <th id="o_leftleg_r"></th>
+                    <th id="o_leftleg_rNum"></th>
+                </tr>
+                <tr>
+                    <th>O型腿右腿</th>
+                    <th id="o_rightleg_r"></th>
+                    <th id="o_rightleg_rNum"></th>
+                </tr>
+                <tr>
+                    <th>X型腿左腿</th>
+                    <th id="x_leftleg_r"></th>
+                    <th id="x_leftleg_rNum"></th>
+                </tr>
+                <tr>
+                    <th>X型腿右腿</th>
+                    <th id="x_rightleg_r"></th>
+                    <th id="x_rightleg_rNum"></th>
+                </tr>
+            </table>
+        </div>
+        <div class="text">注意：异常程度分值量化标准：(60]为正常,(60,80]为轻度异常,(80,100]为重度异常</div>
+    </div>
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script>
+
+        function m1(emlId, num) {
+            var headHeel_RText = '';
+            if (num <= 60) {
+                headHeel_RText = '正常';
+            } else if (num > 60 && num <= 80) {
+                headHeel_RText = '轻度异常';
+            } else {
+                headHeel_RText = '重度异常';
+            }
+            $(emlId).text(headHeel_RText);
+            $(emlId + 'Num').text(num);
+        }
+
+        var title = ['原图', '解析图', '头部', '胸部', '骨盆', '腿部'];
+        var title2 = ['侧面原图', '侧面解析', '侧头部', '侧腿部'];
+        var datas = [];
+        var datas2 = [];
+        $('#upLoadBtn').on('click', function () {
+            $('#upLoad').click();
+        })
+        //上传正面
+        $("#upLoad").on("change", function () {
+
+            var files = $(this).get(0).files; //获取图片
+            var formData = new FormData();
+
+            for (var i = 0, len = files.length; i < len; i++) {
+                formData.append("file" + i, files[i]);
+            }
+            $.ajax({
+                url: '/body/body',//上传路径
+                type: 'POST',
+                data: formData,
+                dataType: "json",
+                processData: false,  // processData和contentType需设置为false
+                contentType: false,
+                success: function (res) {
+                    if (!res.success){
+                        alert(res.errMsg);
+                        return;
+                    }
+
+                    //正面图
+                    datas.push(res.data.old);
+                    datas.push(res.data.analysis);
+                    datas.push(res.data.head_image);
+                    datas.push(res.data.chest_image);
+                    datas.push(res.data.pelvis_image);
+                    datas.push(res.data.leg_image);
+
+                    //res后台返回地址
+                    for (var i = 0; i < datas.length; i++) {
+
+                        $('.imglist').append('<div class="tips">' + title[i] + '</div><img data-index="1-' + i + '" class="imageShow clickItem" src="' + datas[i] + '" width="100%"/>')
+
+                    }
+
+
+
+                    //身体评估
+                    //头部侧倾
+                    m1('#headHeel_R', res.data.headHeel_R);
+                    //高低肩
+                    m1('#highLowShoulder', res.data.highLowShoulder);
+                    //脊柱侧弯
+                    m1('#scoliosisR', res.data.scoliosisR);
+                    //盆骨侧倾
+                    m1('#pelvicTiltR', res.data.pelvicTiltR);
+                    //O行左腿
+                    m1('#o_leftleg_r', res.data.o_leftleg_r);
+                    //O行右腿
+                    m1('#o_rightleg_r', res.data.o_rightleg_r);
+                    //X行左腿
+                    m1('#x_leftleg_r', res.data.x_leftleg_r);
+                    //X行右腿
+                    m1('#x_rightleg_r', res.data.x_rightleg_r);
+
+                }
+            })
+
+        });
+
+        //侧面按钮
+        $('#upLoadsideBtn').on('click', function () {
+            $('#upLoadside').click();
+        })
+        //上传侧面
+        $("#upLoadside").on("change", function () {
+
+            var files = $(this).get(0).files; //获取图片
+            var formData = new FormData();
+
+            for (var i = 0, len = files.length; i < len; i++) {
+                formData.append("file" + i, files[i]);
+            }
+            $.ajax({
+                url: '/body/bodySideways',//上传路径
+                type: 'POST',
+                data: formData,
+                dataType: "json",
+                processData: false,  // processData和contentType需设置为false
+                contentType: false,
+                success: function (res) {
+                    if (!res.success){
+                        alert(res.errMsg);
+                        return;
+                    }
+
+                    //侧面图
+                    datas2.push(res.data.old_side);
+                    datas2.push(res.data.analysis_side);
+                    datas2.push(res.data.head_image_side);
+                    datas2.push(res.data.leg_image_side);
+                    //res后台返回地址
+                    for (var i = 0; i < datas2.length; i++) {
+
+                        $('.imglistside').append('<div class="tips">' + title2[i] + '</div><img data-index="2-' + i + '" class="imageShow clickItem" src="' + datas2[i] + '" width="100%"/>')
+
+                    }
+
+                }
+            })
+
+        });
+
+
+
+        $('.layer').on('click', function () {
+            $(this).hide()
+        })
+
+
+        $(document).on('click', '.clickItem', function () {
+            var indexArr = $(this).data('index').split('-')
+            var imageUrl = ''
+            if(indexArr[0]==='1') {
+                //正面
+                imageUrl = datas[Number(indexArr[1])]
+                console.log(datas[Number(indexArr[1])])
+            } else {
+                //侧身
+                imageUrl = datas2[Number(indexArr[1])]
+                console.log(datas2[Number(indexArr[1])])
+            }
+
+            $('#showImage').prop('src', imageUrl);
+            $('.layer').show();
+        })
+    </script>
+</body>
+
+</html>
