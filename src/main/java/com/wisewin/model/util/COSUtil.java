@@ -82,7 +82,7 @@ public class COSUtil {
     
     public static void main(String[] args) {
 
-        String urlName = uploadFile("D:\\403cb7e346d7860cdc3b0527aab1f6e.jpg");
+        String urlName = uploadFile("C:\\tupian\\ 1573829005945_698.jpg");
         System.out.println(urlName);
     }
 

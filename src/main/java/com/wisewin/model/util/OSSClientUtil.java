@@ -21,15 +21,15 @@ public class OSSClientUtil {
 
     //todo 这些变量信息自行到阿里云oss存储控制台获取
     // endpoint			替换成自己的
-    private String endpoint = "http://oss-cn-beijing.aliyuncs.com";
+    private String endpoint = "http://oss-cn-zhangjiakou.aliyuncs.com";
     // accessKey		替换成自己的
-    private String accessKeyId = "LTAI4FiejWGnEEjQ5k42XhJG";
+    private String accessKeyId = "LTAI0yWWSCMgNb9a";
     //accessKeySecret 	替换成自己的
-    private String accessKeySecret = "8rf9OrKkaqYuqI3mf929TAuUShkimp";
+    private String accessKeySecret = "JDv8mw8Tq3KFULnl9Fo61p5jw8GVnc";
     // Bucket名称		替换成自己的
-    private String bucketName = "oopsstatic";
+    private String bucketName = "qq492690314";
     // urlName		    替换成自己的
-    private String urlName ="https://oopsstatic.oss-cn-beijing.aliyuncs.com/";
+    private String urlName ="https://qq492690314.oss-cn-zhangjiakou.aliyuncs.com/";
     // 文件存储目录		替换成自己的
     private String filedir = "";
 
@@ -197,6 +197,13 @@ public class OSSClientUtil {
             return url.toString();
         }
         return null;
+    }
+
+
+    public static void main(String[] args) throws Exception{
+        OSSClientUtil ossClientUtil = new OSSClientUtil();
+        String str = ossClientUtil.uploadImg2Oss("C:\\tupian\\ 1573829005945_698.jpg");
+        System.out.println(str);
     }
 
 }
