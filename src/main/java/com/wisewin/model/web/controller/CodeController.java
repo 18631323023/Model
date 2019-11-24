@@ -18,7 +18,7 @@ import java.util.Random;
  * 2019-08-20 by wuyang
  */
     @Controller
-    @RequestMapping("/codeController")
+    @RequestMapping("/code")
     public class CodeController {
         private int width = 90;//定义图片的width
         private int height = 20;//定义图片的height
