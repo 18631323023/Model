@@ -23,9 +23,9 @@ public class OSSClientUtil {
     // endpoint			替换成自己的
     private String endpoint = "http://oss-cn-zhangjiakou.aliyuncs.com";
     // accessKey		替换成自己的
-    private String accessKeyId = "LTAI0yWWSCMgNb9a";
+    private String accessKeyId = "";
     //accessKeySecret 	替换成自己的
-    private String accessKeySecret = "JDv8mw8Tq3KFULnl9Fo61p5jw8GVnc";
+    private String accessKeySecret = "";
     // Bucket名称		替换成自己的
     private String bucketName = "qq492690314";
     // urlName		    替换成自己的
